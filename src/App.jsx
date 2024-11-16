@@ -18,6 +18,8 @@ const App = () => {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState("");
   const [previousMessages, setPreviousMessages] = useState([]);
+  const [disease, setDisease] = useState("");
+  const [diseaseAnalysis, setDiseaseAnalysis] = useState("");
 
   const storeSymptoms = async (symptoms, analysis) => {
     try {
@@ -30,6 +32,28 @@ const App = () => {
       console.error("Error storing symptoms:", error);
     }
   };
+
+  const storeAIResponse = async (response) => {
+    try {
+      await db.createDocument(symptomsCollection, "unique()", {
+        response: response,
+      });
+      console.log("AI response stored successfully!");
+    } catch (error) {
+      console.error("Error storing AI response:", error);
+    }
+  };
+
+  const fetchStoredResponses = async () => {
+    try {
+      const storedResponses = await db.listDocuments(symptomsCollection);
+      return storedResponses.documents.map((doc) => doc.response);
+    } catch (error) {
+      console.error("Error fetching stored responses:", error);
+      return [];
+    }
+  };
+
   // Initiate AI conversation on component mount
   useEffect(() => {
     const initiateAIConversation = async () => {
@@ -55,11 +79,31 @@ const App = () => {
     initiateAIConversation();
   }, []); // Runs only once when the component mounts
 
+  useEffect(() => {
+    const finishConversation = async () => {
+      try {
+        const FinishMessage =
+          "Thank you for sharing your symptoms. Based on the information you've provided, I recommend that you consult a mental health professional for a proper diagnosis and treatment plan. Remember, mental health is important, and seeking help is a sign of strength. Take care!";
+      } catch (error) {
+        console.error("Error finishing conversation:", error);
+      }
+    };
+  }, []);
+
   const analyzePrompt = async (prompt) => {
     try {
+      const storedResponses = await fetchStoredResponses();
+
       const analysis = await openai.chat.completions.create({
         model: "ft:gpt-4o-2024-08-06:one-psych-stop::AU9fsJfE", // Use the fine-tuned model ID here
-        messages: [...previousMessages, { role: "user", content: prompt }],
+        messages: [
+          ...storedResponses.map((response) => ({
+            role: "assistant",
+            content: response,
+          })),
+          ...previousMessages,
+          { role: "user", content: prompt },
+        ],
         max_tokens: 100,
       });
 
@@ -74,6 +118,9 @@ const App = () => {
         { role: "user", content: prompt },
         newMessage,
       ]);
+
+      // Store the AI response
+      await storeAIResponse(newMessage.content);
 
       return newMessage.content;
     } catch (error) {
@@ -103,24 +150,63 @@ const App = () => {
     e.target.style.height = `${e.target.scrollHeight}px`;
   };
 
+  const handleDiseaseChange = (e) => {
+    setDisease(e.target.value);
+  };
+
+  const handleAnalyzeDisease = async () => {
+    try {
+      // Prepare the prompt to ask the AI to review the disease analysis
+      const diseasePrompt = `You have analyzed the symptoms as: "${result}". The user has entered the disease as "${disease}". Based on the symptoms you've analyzed, does this disease match the symptoms or not? Answer simply.`;
+
+      
+      const analysis = await analyzePrompt(diseasePrompt);
+
+      
+      setDiseaseAnalysis(analysis); // Store result for rendering
+    } catch (error) {
+      console.error(error);
+      setDiseaseAnalysis("Error occurred. Please try again.");
+    }
+  };
+
   return (
     <div className="container-1 ">
       <h1 className="text-4xl">OnePyschStop</h1>
       <h2 className="heading">Symptom Analysis</h2>
       <textarea
         className="prompt min-h-fit min-w-full"
-        placeholder="Type your prompt here..."
+        placeholder="Please diagnose here..."
         value={prompt}
         onChange={handleInputChange}
         style={{ overflow: "hidden" }}
       />
-      <button className="rounded-full px-4 py-2" onClick={handleAnalyze}>
-        Analyze
+      <button className="rounded-full px-6 py-2" onClick={handleAnalyze}>
+        Enter
       </button>
       {result && (
         <div className="container">
-          <h3 className="result">Result:</h3>
+          <h3 className="result">Patient Symptoms:</h3>
           <p>{result}</p>
+          <h3 className="result mt-4">Analysis:</h3>
+          <div className="flex gap-2 mt-4 justify-between">
+            <input
+              className="w-full p-2"
+              type="text"
+              placeholder="Enter the disease that you have analysed"
+              value={disease}
+              onChange={handleDiseaseChange}
+            />
+            <button
+              className="rounded-md px-4 py-2"
+              onClick={handleAnalyzeDisease}
+            >
+              Analyse
+            </button>
+            {/* <h4>Disease Analysis:</h4> */}
+          </div>
+          <h4 className="text-2xl mt-4">Results:</h4>
+          <p className="mt-8">{diseaseAnalysis}</p>
         </div>
       )}
     </div>
