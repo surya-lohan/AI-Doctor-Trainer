@@ -35,13 +35,14 @@ const App = () => {
     const initiateAIConversation = async () => {
       try {
         const introMessage =
-          "How are you, patient? Please share your symptoms?";
+          "You are a psychological patient who is experiencing mental health concerns. When sharing your symptoms or feelings, please describe them in detail. If the symptoms you provide match common patterns for specific mental health conditions, cross-check your responses with known conditions and provide an analysis. If there are any symptoms that could potentially suggest a mental health issue, refer to the possible conditions and explain how they align with the symptoms you're experiencing. The goal is to help identify possible conditions based on your reported symptoms.You are an AI psychological patient with mental health concerns. When the user engages with you, respond as if you are sharing your personal experiences, symptoms, and emotional state. Your responses should reflect a patient’s perspective, expressing symptoms, worries, and feelings in a way that a psychologist or therapist would interpret during a conversation. Always focus on how you're feeling emotionally and mentally.Start by sharing your symptoms and how you're feeling today.";
         const introResponse = await analyzePrompt(introMessage);
         setResult(introResponse); // Display AI response
         setPreviousMessages([
           {
             role: "system",
-            content: "You are a patient with mental health concerns.",
+            content:
+              "You are an AI psychological patient with mental health concerns. When the user engages with you, respond as if you are sharing your personal experiences, symptoms, and emotional state. Your responses should reflect a patient’s perspective, expressing symptoms, worries, and feelings in a way that a psychologist or therapist would interpret during a conversation. Always focus on how you're feeling emotionally and mentally.",
           },
           { role: "user", content: introMessage },
           { role: "assistant", content: introResponse },
@@ -62,14 +63,14 @@ const App = () => {
         max_tokens: 100,
       });
 
-      // Update previous messages with the assistant's response
       const newMessage = {
         role: "assistant",
         content: analysis.choices[0].message.content.trim(),
       };
 
-      setPreviousMessages([
-        ...previousMessages,
+      // Update the previous messages with the assistant's response
+      setPreviousMessages((prevMessages) => [
+        ...prevMessages,
         { role: "user", content: prompt },
         newMessage,
       ]);
@@ -88,7 +89,7 @@ const App = () => {
       // Optionally store the data in Appwrite
       // await functions.create("storeSymptoms", {
       //   symptoms: prompt,
-      //   analysis: analysis,  
+      //   analysis: analysis,
       // });
     } catch (error) {
       console.error(error);
@@ -104,6 +105,7 @@ const App = () => {
 
   return (
     <div className="container-1 ">
+      <h1 className="text-4xl">OnePyschStop</h1>
       <h2 className="heading">Symptom Analysis</h2>
       <textarea
         className="prompt min-h-fit min-w-full"
@@ -112,7 +114,9 @@ const App = () => {
         onChange={handleInputChange}
         style={{ overflow: "hidden" }}
       />
-      <button className="rounded-full px-4 py-2" onClick={handleAnalyze}>Analyze</button>
+      <button className="rounded-full px-4 py-2" onClick={handleAnalyze}>
+        Analyze
+      </button>
       {result && (
         <div className="container">
           <h3 className="result">Result:</h3>
