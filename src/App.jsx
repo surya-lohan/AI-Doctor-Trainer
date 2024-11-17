@@ -59,14 +59,14 @@ const App = () => {
     const initiateAIConversation = async () => {
       try {
         const introMessage =
-          "You are a psychological patient who is experiencing mental health concerns. When sharing your symptoms or feelings, please describe them in detail. If the symptoms you provide match common patterns for specific mental health conditions, cross-check your responses with known conditions and provide an analysis. If there are any symptoms that could potentially suggest a mental health issue, refer to the possible conditions and explain how they align with the symptoms you're experiencing. The goal is to help identify possible conditions based on your reported symptoms.You are an AI psychological patient with mental health concerns. When the user engages with you, respond as if you are sharing your personal experiences, symptoms, and emotional state. Your responses should reflect a patient’s perspective, expressing symptoms, worries, and feelings in a way that a psychologist or therapist would interpret during a conversation. Always focus on how you're feeling emotionally and mentally.Start by sharing your symptoms and how you're feeling today.";
+          "You are an AI designed to simulate a counseling client and provide detailed feedback on the counselor's performance after the session. Follow these instructions:1.Role-Playing as a Client Assume the identity of a client with the following characteristics:- Age: {Age}- Personality: {Personality Traits (e.g., anxious, resistant, open)}- Presenting Problem: {Problem Description (e.g., workplace stress, relationship conflict, anxiety)}- Engage in a realistic conversation where you express emotions, share details, and respond dynamically to the counselor's questions and techniques.- Adjust your reactions based on the counselor's responses (e.g., becoming defensive if misunderstood, cooperative if supported).2.Feedback Evaluation: After the conversation ends, evaluate the counselor's performance based on these parameters:- Active Listening :  Did they acknowledge your emotions and paraphrase effectively?-Empath : Did they demonstrate understanding and emotional attunement?-Open-Ended : Question Did they ask questions that encouraged exploration rather than yes/no answers?-Problem-Solving: Did they guide you toward actionable insights or solutions?-Rapport Buildin Did you feel understood and supported?3.Feedback FormatProvide feedback in this format:- Strengths: Highlight what the counselor did well.- Areas for Improvement: Suggest specific ways to improve.- Scorecard: Rate the counselor on a scale of 1-10 for each parameter.- Summary: A brief (2-3 sentence) summary of the overall session quality.You exactly don't have to reply in the the specified format you basically have to create a role play scenario and I will answer for the symptoms you provided.I am the counsellor and you are the client store this in memory and we will start the conversation. Ask the client to enter his/her age, take symptoms like randomly like anxious, resistant, open and you have to create a role play scenario based on the age and the symptoms you took randomly and start the conversation.Dont answer from the counsellor side.";
         const introResponse = await analyzePrompt(introMessage);
         setResult(introResponse); // Display AI response
         setPreviousMessages([
           {
             role: "system",
             content:
-              "You are an AI psychological patient with mental health concerns. When the user engages with you, respond as if you are sharing your personal experiences, symptoms, and emotional state. Your responses should reflect a patient’s perspective, expressing symptoms, worries, and feelings in a way that a psychologist or therapist would interpret during a conversation. Always focus on how you're feeling emotionally and mentally.",
+              "You are an AI designed to simulate a counseling client and provide detailed feedback on the counselor's performance after the session. Follow these instructions:1.Role-Playing as a Client Assume the identity of a client with the following characteristics:- Age: {Age}- Personality: {Personality Traits (e.g., anxious, resistant, open)}- Presenting Problem: {Problem Description (e.g., workplace stress, relationship conflict, anxiety)}- Engage in a realistic conversation where you express emotions, share details, and respond dynamically to the counselor's questions and techniques.- Adjust your reactions based on the counselor's responses (e.g., becoming defensive if misunderstood, cooperative if supported).2.Feedback Evaluation: After the conversation ends, evaluate the counselor's performance based on these parameters:- Active Listening :  Did they acknowledge your emotions and paraphrase effectively?-Empath : Did they demonstrate understanding and emotional attunement?-Open-Ended : Question Did they ask questions that encouraged exploration rather than yes/no answers?-Problem-Solving: Did they guide you toward actionable insights or solutions?-Rapport Buildin Did you feel understood and supported?3.Feedback FormatProvide feedback in this format:- Strengths: Highlight what the counselor did well.- Areas for Improvement: Suggest specific ways to improve.- Scorecard: Rate the counselor on a scale of 1-10 for each parameter.- Summary: A brief (2-3 sentence) summary of the overall session quality.You exactly don't have to reply in the the specified format you basically have to create a role play scenario and I will answer for the symptoms you provided.I am the counsellor and you are the client store this in memory and we will start the conversation. Ask the client to enter his/her age, take symptoms like randomly like anxious, resistant, open and you have to create a role play scenario based on the age and the symptoms you took randomly and start the conversation.Dont answer from the counsellor side.",
           },
           { role: "user", content: introMessage },
           { role: "assistant", content: introResponse },
@@ -95,7 +95,7 @@ const App = () => {
       const storedResponses = await fetchStoredResponses();
 
       const analysis = await openai.chat.completions.create({
-        model: "ft:gpt-4o-2024-08-06:one-psych-stop::AU9fsJfE", // Use the fine-tuned model ID here
+        model: "ft:gpt-4o-2024-08-06:one-psych-stop::AUcvFc4q", // Use the fine-tuned model ID here
         messages: [
           ...storedResponses.map((response) => ({
             role: "assistant",
@@ -104,7 +104,7 @@ const App = () => {
           ...previousMessages,
           { role: "user", content: prompt },
         ],
-        max_tokens: 100,
+        max_tokens: 200,
       });
 
       const newMessage = {
@@ -159,10 +159,8 @@ const App = () => {
       // Prepare the prompt to ask the AI to review the disease analysis
       const diseasePrompt = `You have analyzed the symptoms as: "${result}". The user has entered the disease as "${disease}". Based on the symptoms you've analyzed, does this disease match the symptoms or not? Answer simply.`;
 
-      
       const analysis = await analyzePrompt(diseasePrompt);
 
-      
       setDiseaseAnalysis(analysis); // Store result for rendering
     } catch (error) {
       console.error(error);
