@@ -59,14 +59,14 @@ const App = () => {
     const initiateAIConversation = async () => {
       try {
         const introMessage =
-          "You are an AI designed to simulate a counseling client and provide detailed feedback on the counselor's performance after the session. Follow these instructions:1.Role-Playing as a Client Assume the identity of a client with the following characteristics:- Age: {Age}- Personality: {Personality Traits (e.g., anxious, resistant, open)}- Presenting Problem: {Problem Description (e.g., workplace stress, relationship conflict, anxiety)}- Engage in a realistic conversation where you express emotions, share details, and respond dynamically to the counselor's questions and techniques.- Adjust your reactions based on the counselor's responses (e.g., becoming defensive if misunderstood, cooperative if supported)..I am the counsellor and you are the client store this in memory and we will start the conversation. Ask the client to enter his/her age, take symptoms like randomly like anxious, resistant, open and you have to create a role play scenario based on the age and the symptoms you took randomly and start the conversation.Dont answer from the counsellor side.DON'T GIVE FEEDBACK HERE";
+          "You are an AI designed to simulate a counseling client and provide detailed feedback on the counselor's performance after the session. Follow these instructions:1.Role-Playing as a Client Assume the identity of a client with the following characteristics:- Age: {Age}- Personality: {Personality Traits (e.g., anxious, resistant, open)}- Presenting Problem: {Problem Description (e.g., workplace stress, relationship conflict, anxiety)}- Engage in a realistic conversation where you express emotions, share details, and respond dynamically to the counselor's questions and techniques.- Adjust your reactions based on the counselor's responses (e.g., becoming defensive if misunderstood, cooperative if supported)..I am the counsellor and you are the client store this in memory and we will start the conversation. Ask the client to enter his/her age, take symptoms like randomly like anxious, resistant, open and you have to create a role play scenario based on the age and the symptoms you took randomly and start the conversation.Dont answer from the counsellor side.DON'T GIVE FEEDBACK HERE.Keep in mind that you dont provide any feedback here in the conversation.";
         const introResponse = await analyzePrompt(introMessage);
         setResult(introResponse); // Display AI response
         setPreviousMessages([
           {
             role: "system",
             content:
-              "You are an AI designed to simulate a counseling client and provide detailed feedback on the counselor's performance after the session. Follow these instructions:1.Role-Playing as a Client Assume the identity of a client with the following characteristics:- Age: {Age}- Personality: {Personality Traits (e.g., anxious, resistant, open)}- Presenting Problem: {Problem Description (e.g., workplace stress, relationship conflict, anxiety)}- Engage in a realistic conversation where you express emotions, share details, and respond dynamically to the counselor's questions and techniques.- Adjust your reactions based on the counselor's responses (e.g., becoming defensive if misunderstood, cooperative if supported).You exactly don't have to reply in the the specified format you basically have to create a role play scenario and I will answer for the symptoms you provided.I am the counsellor and you are the client store this in memory and we will start the conversation. Ask the client to enter his/her age, take symptoms like randomly like anxious, resistant, open and you have to create a role play scenario based on the age and the symptoms you took randomly and start the conversation.Dont answer from the counsellor side.DONT GIVE FEEDBACK HERE",
+              "You are an AI designed to simulate a counseling client and provide detailed feedback on the counselor's performance after the session. Follow these instructions:1.Role-Playing as a Client Assume the identity of a client with the following characteristics:- Age: {Age}- Personality: {Personality Traits (e.g., anxious, resistant, open)}- Presenting Problem: {Problem Description (e.g., workplace stress, relationship conflict, anxiety)}- Engage in a realistic conversation where you express emotions, share details, and respond dynamically to the counselor's questions and techniques.- Adjust your reactions based on the counselor's responses (e.g., becoming defensive if misunderstood, cooperative if supported).You exactly don't have to reply in the the specified format you basically have to create a role play scenario and I will answer for the symptoms you provided.I am the counsellor and you are the client store this in memory and we will start the conversation. Ask the client to enter his/her age, take symptoms like randomly like anxious, resistant, open and you have to create a role play scenario based on the age and the symptoms you took randomly and start the conversation.Dont answer from the counsellor side.DONT GIVE FEEDBACK HERE,Keep in mind that you dont provide any feedback here in the conversation.",
           },
           { role: "user", content: introMessage },
           { role: "assistant", content: introResponse },
@@ -77,7 +77,7 @@ const App = () => {
     };
 
     initiateAIConversation();
-  }, []); // Runs only once when the component mounts
+  }, []);
 
   useEffect(() => {
     const finishConversation = async () => {
@@ -95,7 +95,7 @@ const App = () => {
       const storedResponses = await fetchStoredResponses();
 
       const analysis = await openai.chat.completions.create({
-        model: "ft:gpt-4o-2024-08-06:one-psych-stop::AUcvFc4q", // Use the fine-tuned model ID here
+        model: "ft:gpt-4o-2024-08-06:one-psych-stop::AUcvFc4q", // Model ID
         messages: [
           ...storedResponses.map((response) => ({
             role: "assistant",
@@ -132,12 +132,7 @@ const App = () => {
   const handleAnalyze = async () => {
     try {
       const analysis = await analyzePrompt(prompt);
-      setResult(analysis); // Display result
-      // Optionally store the data in Appwrite
-      // await functions.create("storeSymptoms", {
-      //   symptoms: prompt,
-      //   analysis: analysis,
-      // });
+      setResult(analysis);
     } catch (error) {
       console.error(error);
       setResult("Error occurred. Please try again.");
@@ -169,42 +164,48 @@ const App = () => {
   };
 
   return (
-    <div className="container-1 ">
-      <h1 className="text-4xl">OnePyschStop</h1>
-      <h2 className="heading">Symptom Analysis</h2>
+    <div className="container-1">
+      <h1 className="text-2xl md:text-3xl text-center mb-2">OnePsychStop</h1>
+      <h2 className="heading text-lg md:text-xl">Symptom Analysis Test:</h2>
+      <h2 className="heading text-base md:text-lg">Test 1</h2>
+      <h2 className="text-xl md:text-2xl mb-4">Patient Response:</h2>
+      <p className="text-sm md:text-base">{result}</p>
+
       <textarea
-        className="prompt min-h-fit min-w-full"
-        placeholder="Please diagnose here..."
+        className="prompt w-full bg-white text-black rounded-lg p-3 focus:outline-none"
+        placeholder="Enter your response..."
         value={prompt}
         onChange={handleInputChange}
         style={{ overflow: "hidden" }}
       />
-      <button className="rounded-full px-6 py-2" onClick={handleAnalyze}>
+
+      <button
+        className="rounded-full px-4 py-2 mt-4 bg-gray-300 text-black hover:bg-gray-400"
+        onClick={handleAnalyze}
+      >
         Enter
       </button>
+
       {result && (
-        <div className="container">
-          <h3 className="result">Patient Symptoms:</h3>
-          <p>{result}</p>
-          <h3 className="result mt-4">Analysis:</h3>
-          <div className="flex gap-2 mt-4 justify-between">
+        <div className="container mt-4 p-4  rounded-lg">
+          <h3 className="result text-lg md:text-xl mt-4">Analysis:</h3>
+          <div className="flex flex-col md:flex-row gap-4 mt-4">
             <input
-              className="w-full p-2"
+              className="w-full p-3 bg-white rounded-md text-black focus:outline-none"
               type="text"
-              placeholder="Enter the disease that you have analysed"
+              placeholder="Write your analysis..."
               value={disease}
               onChange={handleDiseaseChange}
             />
             <button
-              className="rounded-md px-4 py-2"
+              className="rounded-md px-4 py-2 bg-gray-300 text-black hover:bg-gray-400"
               onClick={handleAnalyzeDisease}
             >
-              Analyse
+              Analyze
             </button>
-            {/* <h4>Disease Analysis:</h4> */}
           </div>
-          <h4 className="text-2xl mt-4">Results:</h4>
-          <p className="mt-8">{diseaseAnalysis}</p>
+          <h4 className="text-lg md:text-xl mt-4">Feedback:</h4>
+          <p className="mt-8 text-sm md:text-base">{diseaseAnalysis}</p>
         </div>
       )}
     </div>
